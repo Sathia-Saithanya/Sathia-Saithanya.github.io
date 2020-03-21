@@ -1,9 +1,500 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Sathia's Dream</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css"
+      rel="stylesheet"
+    />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui"
+    />
   </head>
+
   <body>
-    <iframe src="CONTENT_DISTRIBUTION_INNOVATION.pdf" width="100%" height="1000px"></iframe>
+    <div id="app">
+      <v-app>
+        <v-content>
+          <v-container fluid>
+            <template>
+              <v-form
+                @submit.prevent="addQuestionnaire"
+                ref="formElement"
+                autocomplete="off"
+              >
+                <v-row>
+                  <v-col cols="12" md="7">
+                    <v-text-field
+                      v-model="dcpName"
+                      :counter="100"
+                      label="DCP Name"
+                      required
+                    >
+                    </v-text-field>
+                  </v-col>
+
+                  <v-col cols="12" sm="3">
+                    <v-menu
+                      ref="menu"
+                      v-model="menu"
+                      :close-on-content-click="false"
+                      :return-value.sync="eventDate"
+                      transition="scale-transition"
+                      offset-y
+                      min-width="290px"
+                    >
+                      <template v-slot:activator="{ on }">
+                        <v-text-field
+                          v-model="dateRangeText"
+                          label="Event Start ~ End Date"
+                          v-on="on"
+                        >
+                        </v-text-field>
+                      </template>
+                      <v-date-picker
+                        v-model="eventDate"
+                        range
+                        no-title
+                        scrollable
+                      >
+                        <v-spacer></v-spacer>
+                        <v-btn text color="primary" @click="menu = false"
+                          >Cancel</v-btn
+                        >
+                        <v-btn
+                          text
+                          color="primary"
+                          @click="$refs.menu.save(eventDate)"
+                          >OK</v-btn
+                        >
+                      </v-date-picker>
+                    </v-menu>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col cols="12" md="2">
+                    <v-select
+                      v-model="region"
+                      :items="regionOptions"
+                      label="Region"
+                      autocomplete
+                    ></v-select>
+                  </v-col>
+                  <v-col cols="12" md="5">
+                    <v-autocomplete
+                      v-model="country"
+                      :items="countryOptions"
+                      label="Country"
+                    ></v-autocomplete>
+                  </v-col>
+                  <v-col cols="12" md="3">
+                    <v-combobox
+                      v-model="city"
+                      :items="cityOptions"
+                      label="City"
+                    ></v-combobox>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col cols="12" sm="2">
+                    <v-select
+                      v-model="totalSessions"
+                      :items="sessionOptions"
+                      label="How many Sessions?"
+                    >
+                    </v-select>
+                  </v-col>
+                  <v-col cols="12" sm="4">
+                    <v-select
+                      v-model="pagesPerSession"
+                      :items="sessionOptions"
+                      label="How many pages per session?(max)"
+                    >
+                    </v-select>
+                  </v-col>
+                  <v-col cols="12" sm="4">
+                    <v-select
+                      v-model="breakTimeBetweenSessions"
+                      :items="breakTimeBetweenSessionsOptions"
+                      label="Break time between each sessions?"
+                      autocomplete
+                    >
+                    </v-select>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col cols="12" sm="10">
+                    <v-row align="center">
+                      <v-checkbox
+                        v-model="titleDescriptionEnabled"
+                        hide-details
+                        class="shrink ml-3 mt-0"
+                      ></v-checkbox>
+                      <v-select
+                        v-model="titleDescription"
+                        :items="titleDescriptionOptions"
+                        :disabled="!titleDescriptionEnabled"
+                        label="Is the title / description the same for each page?"
+                        autocomplete
+                      ></v-select>
+                    </v-row>
+                  </v-col> 
+                </v-row>
+
+                <v-btn type="submit" color="blue-grey-2 text-white">
+                  Make DCP</v-btn
+                >
+              </v-form>
+            </template>
+          </v-container>
+        </v-content>
+      </v-app>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script>
+      new Vue({
+        el: "#app",
+        vuetify: new Vuetify(),
+        data: {
+          snackbar: false,
+          submitMessage: "",
+          eventName: "",
+          eventDate: [],
+          region: "",
+          country: "",
+          city: "",
+          menu: false,
+          platformSelected: [],
+          slatesSelected: [],
+          totalSessions: "",
+          pagesPerSession: "",
+          postScheduled: "",
+          crossposting: "",
+          closedCaption: "",
+          ageRestriction: "",
+          postBoost: "",
+          titleDescription: "",
+          copyrightContent: "",
+          geoBlocking: [],
+          breakTimeBetweenSessions: "",
+          polls: "",
+
+          titleDescriptionEnabled: false,
+          crosspostingEnabled: false,
+          captionEnabled: false,
+          ageRestrictionEnabled: false,
+          postBoostEnabled: false,
+          postscheduledEnabled: false,
+          copyrightContentEnabled: false,
+          geoBlockingEnabled: false,
+          pollsEnabled: false,
+
+          titleDescriptionOptions: ["Yes", "No"],
+          slateOptions: [
+            "Opening",
+            "Closing",
+            "Resume Shortly",
+            "Technical Issues",
+            "Fire Alarm"
+          ],
+          streamingPlatformOptions: [
+            "Facebook",
+            "Workplace",
+            "LinkedIn",
+            "External Site"
+          ],
+          closedCaptionOptions: ["Onsite", "Remote (iCap)"],
+          sessionOptions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+          breakTimeBetweenSessionsOptions: [
+            "5 mins",
+            "10 mins",
+            "15 mins",
+            "30 mins",
+            "45 mins",
+            "60 mins"
+          ],
+          ageRestrictionOptions: ["+13", "+14", "+15", "+16", "+17", "+18"],
+          postBoostOptions: ["Before the live", "During the live"],
+          postscheduledOptions: [
+            "High possibility",
+            "Low possibility",
+            "It won't change",
+            "Don't know"
+          ],
+          crosspostingOptions: [
+            "Can get admin access to all of the pages",
+            "Can get admin access to some of the pages, not all",
+            "Can simulcast to all the pages instead crossposting"
+          ],
+          copyrightContentOptions: [
+            "Client manage to get the pages whitelisted",
+            "Client wants SBS help to get the pages whitelisted"
+          ],
+          regionOptions: ["APAC", "EMEA", "LATAM", "NAM"],
+          countryOptions: [
+            "China",
+            "India",
+            "United States",
+            "Indonesia",
+            "Pakistan",
+            "Brazil",
+            "Nigeria",
+            "Bangladesh",
+            "Russia",
+            "Mexico",
+            "Japan",
+            "Ethiopia",
+            "Philippines",
+            "Egypt",
+            "Vietnam",
+            "DR Congo",
+            "Turkey",
+            "Iran",
+            "Germany",
+            "Thailand",
+            "United Kingdom",
+            "France",
+            "Italy",
+            "Tanzania",
+            "South Africa",
+            "Myanmar",
+            "Kenya",
+            "South Korea",
+            "Colombia",
+            "Spain",
+            "Uganda",
+            "Argentina",
+            "Algeria",
+            "Sudan",
+            "Ukraine",
+            "Iraq",
+            "Afghanistan",
+            "Poland",
+            "Canada",
+            "Morocco",
+            "Saudi Arabia",
+            "Uzbekistan",
+            "Peru",
+            "Angola",
+            "Malaysia",
+            "Mozambique",
+            "Ghana",
+            "Yemen",
+            "Nepal",
+            "Venezuela",
+            "Madagascar",
+            "Cameroon",
+            "Côte d'Ivoire",
+            "North Korea",
+            "Australia",
+            "Niger",
+            "Sri Lanka",
+            "Burkina Faso",
+            "Mali",
+            "Romania",
+            "Malawi",
+            "Chile",
+            "Kazakhstan",
+            "Zambia",
+            "Guatemala",
+            "Ecuador",
+            "Syria",
+            "Netherlands",
+            "Senegal",
+            "Cambodia",
+            "Chad",
+            "Somalia",
+            "Zimbabwe",
+            "Guinea",
+            "Rwanda",
+            "Benin",
+            "Burundi",
+            "Tunisia",
+            "Bolivia",
+            "Belgium",
+            "Haiti",
+            "Cuba",
+            "South Sudan",
+            "Dominican Republic",
+            "Czech Republic (Czechia)",
+            "Greece",
+            "Jordan",
+            "Portugal",
+            "Azerbaijan",
+            "Sweden",
+            "Honduras",
+            "United Arab Emirates",
+            "Hungary",
+            "Tajikistan",
+            "Belarus",
+            "Austria",
+            "Papua New Guinea",
+            "Serbia",
+            "Israel",
+            "Switzerland",
+            "Togo",
+            "Sierra Leone",
+            "Laos",
+            "Paraguay",
+            "Bulgaria",
+            "Libya",
+            "Lebanon",
+            "Nicaragua",
+            "Kyrgyzstan",
+            "El Salvador",
+            "Turkmenistan",
+            "Singapore",
+            "Denmark",
+            "Finland",
+            "Congo",
+            "Slovakia",
+            "Norway",
+            "Oman",
+            "State of Palestine",
+            "Costa Rica",
+            "Liberia",
+            "Ireland",
+            "Central African Republic",
+            "New Zealand",
+            "Mauritania",
+            "Panama",
+            "Kuwait",
+            "Croatia",
+            "Moldova",
+            "Georgia",
+            "Eritrea",
+            "Uruguay",
+            "Bosnia and Herzegovina",
+            "Mongolia",
+            "Armenia",
+            "Jamaica",
+            "Qatar",
+            "Albania",
+            "Lithuania",
+            "Namibia",
+            "Gambia",
+            "Botswana",
+            "Gabon",
+            "Lesotho",
+            "North Macedonia",
+            "Slovenia",
+            "Guinea-Bissau",
+            "Latvia",
+            "Bahrain",
+            "Equatorial Guinea",
+            "Trinidad and Tobago",
+            "Estonia",
+            "Timor-Leste",
+            "Mauritius",
+            "Cyprus",
+            "Eswatini",
+            "Djibouti",
+            "Fiji",
+            "Comoros",
+            "Guyana",
+            "Bhutan",
+            "Solomon Islands",
+            "Montenegro",
+            "Luxembourg",
+            "Suriname",
+            "Cabo Verde",
+            "Maldives",
+            "Malta",
+            "Brunei",
+            "Belize",
+            "Bahamas",
+            "Iceland",
+            "Vanuatu",
+            "Barbados",
+            "Sao Tome & Principe",
+            "Samoa",
+            "Saint Lucia",
+            "Kiribati",
+            "Micronesia",
+            "Grenada",
+            "St. Vincent & Grenadines",
+            "Tonga",
+            "Seychelles",
+            "Antigua and Barbuda",
+            "Andorra",
+            "Dominica",
+            "Marshall Islands",
+            "Saint Kitts & Nevis",
+            "Monaco",
+            "Liechtenstein",
+            "San Marino",
+            "Palau",
+            "Tuvalu",
+            "Nauru",
+            "Holy See"
+          ],
+          cityOptions: [],
+          pollsOptions: [
+            "Dedicated person for pushing polls",
+            "Dedicated person pulling audience questions from comments"
+          ]
+        },
+        computed: {
+          dateRangeText() {
+            return this.eventDate.join(" ~ ");
+          }
+        },
+        methods: {
+          dispData(e) {
+            alert("Data submission status " + JSON.stringify(e));
+            google.script.host.close();
+          },
+
+          dispError(e) {
+            alert("Data submissixon error " + JSON.stringify(e));
+          },
+
+          addQuestionnaire() {
+            console.log("Adding questionnaire");
+            let data = {
+              "Event Name": this.dcpName,
+              "Event Date": this.eventDate.toString(),
+              Region: this.region,
+              Country: this.country,
+              City: this.city,
+              "Platform Selected": this.platformSelected.toString(),
+              "Slates Selected": this.slatesSelected.toString(),
+              "Total Sessions": this.totalSessions,
+              "Pages Per Session": this.pagesPerSession,
+              "Post Scheduled": this.postScheduled,
+              CrossPosting: this.crossposting,
+              "Closed Caption": this.closedCaption,
+              "Age Restriction": this.ageRestriction,
+              Boosting: this.postBoost,
+              "Title Description": this.titleDescription,
+              "Copyright Content": this.copyrightContent,
+              "Geo Blocking": this.geoBlocking.toString(),
+              "Session Break": this.breakTimeBetweenSessions,
+              Polls: this.polls
+            };
+            console.log("Data Collected");
+            console.log(data);
+
+            google.script.run
+              .withSuccessHandler(this.dispData)
+              .withFailureHandler(this.dispError)
+              .submitSbsQuestionnaire(data);
+          }
+        },
+        created() {
+          this.$vuetify.theme.dark = false;
+        }
+      });
+    </script>
   </body>
 </html>
